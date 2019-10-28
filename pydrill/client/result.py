@@ -8,6 +8,13 @@ try:
 except ImportError:
     PANDAS_AVAILABLE = False
 
+try:
+    import agate
+
+    AGATE_AVAILABLE = True
+except ImportError:
+    AGATE_AVAILABLE = False
+
 
 class Result(object):
     def __init__(self, response, data, duration, *args, **kwargs):
@@ -35,7 +42,14 @@ class ResultQuery(Result):
         if not PANDAS_AVAILABLE:
             raise ImproperlyConfigured("Please install pandas to use ResultQuery.to_dataframe().")
         return pd.DataFrame.from_dict(self.rows)
-
+    
+    def to_table(self, column_types=None):
+        if not AGATE_AVAILABLE:
+            raise ImproperlyConfigured("Please install agate to use ResultQuery.to_table().")
+        table = agate.Table.from_object(
+            self.rows,
+            column_types=column_types)
+        return table.select(self.columns)
 
 class Drillbit(object):
     def __init__(self, id, address, status, *args, **kwargs):
